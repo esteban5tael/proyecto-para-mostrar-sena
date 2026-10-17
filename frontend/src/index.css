@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 /* Importamos JetBrains Mono Variable para toda la interfaz */
-@import "@fontsource-variable/jetbrains-mono";
+
 
 @custom-variant dark (&:is(.dark *));
 
@@ -88,9 +88,9 @@
 
 @theme inline {
     /* Definimos la fuente Monospaced para todo */
-    --font-sans: 'JetBrains Mono Variable', monospace;
-    --font-mono: 'JetBrains Mono Variable', monospace;
-    --font-heading: 'JetBrains Mono Variable', monospace;
+    --font-sans: monospace;
+    --font-mono: monospace;
+    --font-heading: monospace;
 
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
