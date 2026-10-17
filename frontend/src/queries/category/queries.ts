@@ -24,9 +24,6 @@ import type { Category } from "@/schemas/category.schema";
 
 import { categoryKeys } from "./keys";
 
-/** Tiempo de frescura de los datos: 5 minutos. */
-const STALE_TIME = 5 * 60_000;
-
 /**
  * Error tipado que transporta el statusCode de NestJS y el
  * array de errores normalizados, para que la UI pueda
@@ -85,7 +82,6 @@ export function useCategories(
             }
             return res.data;
         },
-        staleTime: STALE_TIME,
         ...options,
     });
 }
@@ -116,7 +112,6 @@ export function useCategory(
             }
             return res.data;
         },
-        staleTime: STALE_TIME,
         ...rest,
         enabled: Boolean(id) && enabled,
     });
@@ -148,7 +143,6 @@ export function useCategoryBySlug(
             }
             return res.data;
         },
-        staleTime: STALE_TIME,
         ...rest,
         enabled: Boolean(slug) && enabled,
     });

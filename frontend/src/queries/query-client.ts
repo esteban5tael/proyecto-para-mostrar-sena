@@ -17,7 +17,10 @@ export const queryClient = new QueryClient({
             gcTime: 10 * 60 * 1000,
             retry: 1,
             refetchOnWindowFocus: false,
-            refetchOnMount: false,
+            // Refetchea en mount solo si la query está obsoleta (p. ej.
+            // tras una mutación que invalidó el dominio). Datos frescos
+            // siguen sirviéndose desde caché sin nueva petición.
+            refetchOnMount: true,
         },
         mutations: {
             retry: 0,
