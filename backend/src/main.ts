@@ -1,11 +1,10 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule, ObserveInstrument } from './app.module.js';
+import { AppModule } from './app.module.js';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
-async function bootstrap() {/*  */
-
+async function bootstrap() {
   const logger: Logger = new Logger('----- Bootstrap -----');
 
   const app = await NestFactory.create(AppModule);
@@ -44,11 +43,18 @@ async function bootstrap() {/*  */
     .addTag('TypeORM PostgreSQL')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, documentFactory);
+
+  // Swagger UI montado dentro del global prefix → /{API_PREFIX}/docs
+  SwaggerModule.setup('docs', app, documentFactory, {
+    useGlobalPrefix: true,
+  });
 
   await app.listen(PORT);
   logger.log(
     `Application is running on: http://localhost:${PORT}/${API_PREFIX}`,
+  );
+  logger.log(
+    `Swagger UI: http://localhost:${PORT}/${API_PREFIX}/docs`,
   );
   logger.log(
     `Environment: ${configService.get<string>('NODE_ENV') || 'development'}`,

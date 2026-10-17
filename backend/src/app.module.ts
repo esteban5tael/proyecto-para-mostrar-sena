@@ -7,7 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CategoriesModule } from './categories/categories.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
-const __dirname = import.meta.dirname; // Node >= 20.11
+
 
 @Module({
   imports: [
@@ -22,7 +22,7 @@ const __dirname = import.meta.dirname; // Node >= 20.11
     /* */
 
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public'), // Adjust the path to your static files
+      rootPath: join(process.cwd(), 'public'), // Adjust the path to your static files
     }),
     ConfigModule.forRoot({
       isGlobal: true,
