@@ -3,7 +3,8 @@
       "ignoreDeprecations": "6.0",
         "baseUrl": ".",
         "paths": {
-            "@/*": ["./src/*"]
+            "@/*": ["./src/*"],
+            "cn": ["./src/lib/utils"]
         }
     },
     "files": [],
