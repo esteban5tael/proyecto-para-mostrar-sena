@@ -1,14 +1,15 @@
 // /src/types/category.interface.ts
 
-import type { Product } from "./product.interface";
+/**
+ * Re-export de los tipos del dominio categoría.
+ * La fuente de verdad es src/schemas/category.schema.ts;
+ * este archivo se mantiene por compatibilidad con los
+ * imports existentes.
+ * @module src/types/category.interface
+ */
 
-export interface Category {
-    id: string;
-    name: string;
-    slug: string;
-    description: string;
-    isActive: boolean;
-    products: Product[];
-    createdAt: Date;
-    updatedAt: Date;
-}
+export type {
+    Category,
+    CreateCategoryDto,
+    UpdateCategoryDto,
+} from "@/schemas/category.schema";

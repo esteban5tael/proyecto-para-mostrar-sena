@@ -1,4 +1,8 @@
-export type { Category } from "./category.interface";
+export type {
+    Category,
+    CreateCategoryDto,
+    UpdateCategoryDto,
+} from "./category.interface";
 export { ok, fail } from "./general-response.interface";
 export type {
     NestErrorResponse,
