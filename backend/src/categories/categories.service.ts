@@ -17,6 +17,17 @@ export class CategoriesService {
     private readonly categoryRepository: Repository<Category>,
   ) {}
 
+  /**
+   * Crea una categoría y devuelve la entidad COMPLETA, incluida la
+   * relación `products` (vacía para una categoría recién creada), de
+   * modo que la respuesta de `POST` tenga la misma forma que la de
+   * `GET` y `PATCH`.
+   *
+   * @param dto - Datos de creación ya validados por class-validator
+   * @returns La categoría persistida con sus productos
+   * @throws {ConflictException} Si ya existe otra categoría con el mismo
+   * `slug` o `name`
+   */
   async create(dto: CreateCategoryDto): Promise<Category> {
     const slug = dto.slug ?? this.slugify(dto.name);
     const existing = await this.categoryRepository.findOne({
@@ -32,7 +43,13 @@ export class CategoriesService {
       description: dto.description ?? null,
       isActive: dto.isActive ?? true,
     });
-    return this.categoryRepository.save(category);
+
+    const saved = await this.categoryRepository.save(category);
+
+    // `save()` no recarga las relaciones `eager` en el INSERT, así que la
+    // respuesta se compone con una lectura por id: así `products` viaja en
+    // el 201 igual que en GET y PATCH.
+    return this.findOneRegardlessStatus(saved.id);
   }
 
   /**
