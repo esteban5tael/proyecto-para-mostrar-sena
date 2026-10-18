@@ -8,4 +8,8 @@ export type {
     NestErrorResponse,
     GeneralResponse,
 } from "./general-response.interface";
-export type { Product } from "./product.interface";
+export type {
+    Product,
+    CreateProductDto,
+    UpdateProductDto,
+} from "./product.interface";
