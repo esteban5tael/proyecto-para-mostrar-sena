@@ -16,6 +16,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import type { Category } from "@/types";
+import { CategoryProductsList } from "./category-products-list";
 
 /** Props de la tarjeta de detalle. */
 type CategoryDetailProps = {
@@ -24,9 +25,9 @@ type CategoryDetailProps = {
 };
 
 /**
- * Renderiza el detalle completo de una categoría:
- * slug, estado, conteo de productos y fechas formateadas
- * en locale es-CO.
+ * Renderiza el detalle completo de una categoría: slug, estado, fechas
+ * formateadas en locale es-CO y el listado de sus productos con
+ * nombre y cantidad.
  */
 export function CategoryDetail({ category }: CategoryDetailProps) {
     return (
@@ -61,13 +62,6 @@ export function CategoryDetail({ category }: CategoryDetailProps) {
 
                     <div className="grid gap-1">
                         <dt className="text-sm text-muted-foreground">
-                            Productos
-                        </dt>
-                        <dd className="text-sm">{category.products.length}</dd>
-                    </div>
-
-                    <div className="grid gap-1">
-                        <dt className="text-sm text-muted-foreground">
                             Creada
                         </dt>
                         <dd className="text-sm">
@@ -90,6 +84,10 @@ export function CategoryDetail({ category }: CategoryDetailProps) {
                         </dd>
                     </div>
                 </dl>
+
+                <div className="mt-4">
+                    <CategoryProductsList products={category.products} />
+                </div>
             </CardContent>
         </Card>
     );

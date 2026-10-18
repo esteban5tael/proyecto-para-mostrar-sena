@@ -11,3 +11,4 @@ export * from "./category-delete-dialog";
 export * from "./category-detail";
 export * from "./category-form";
 export * from "./category-form-error";
+export * from "./category-products-list";
