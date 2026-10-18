@@ -11,7 +11,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
 
 import {
     Breadcrumb,
@@ -25,12 +24,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { CategoryDeleteDialog, CategoryDetail } from "@/components/category";
 import { handleApiError } from "@/lib/api-error-handler";
-import {
-    ApiError,
-    categoryKeys,
-    useCategory,
-    useDeleteCategory,
-} from "@/queries";
+import { ApiError, useCategory, useDeleteCategory } from "@/queries";
 
 /**
  * Página de vista de categoría con breadcrumb, tarjeta de
@@ -51,11 +45,10 @@ export const CategoryView = () => {
     const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const deleteMutation = useDeleteCategory();
 
-    const queryClient = useQueryClient();
-
     /**
-     * Desactiva la categoría y espera a invalidar el dominio antes de
-     * navegar, para que el listado montado refetchee el estado nuevo.
+     * Desactiva la categoría y navega al listado. El hook de mutación ya
+     * invalidó y esperó el refetch del dominio, por lo que el listado
+     * monta con el estado nuevo.
      */
     const handleDeleteConfirm = async (): Promise<void> => {
         try {
@@ -68,7 +61,6 @@ export const CategoryView = () => {
             return;
         }
 
-        await queryClient.invalidateQueries({ queryKey: categoryKeys.all });
         setDeleteDialogOpen(false);
         navigate("/categories");
     };

@@ -10,7 +10,6 @@
 
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
 
 import {
     Breadcrumb,
@@ -22,7 +21,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { CategoryForm } from "@/components/category";
 import { handleApiError } from "@/lib/api-error-handler";
-import { categoryKeys, useCreateCategory } from "@/queries";
+import { useCreateCategory } from "@/queries";
 import type { Category } from "@/schemas/category.schema";
 import type { CreateCategoryDto, UpdateCategoryDto } from "@/types";
 
@@ -32,13 +31,13 @@ import type { CreateCategoryDto, UpdateCategoryDto } from "@/types";
  */
 export const CategoryCreate = () => {
     const navigate = useNavigate();
-    const queryClient = useQueryClient();
 
     const createMutation = useCreateCategory();
 
     /**
-     * Crea la categoría y espera a invalidar el dominio antes de navegar,
-     * para que el listado y el detalle montados refetcheen los datos nuevos.
+     * Crea la categoría y navega al detalle. El hook de mutación ya
+     * invalidó y esperó el refetch del dominio, por lo que la pantalla
+     * de destino monta con datos frescos sin invalidación adicional.
      * @param payload - Payload del formulario validado
      */
     const handleFormSubmit = async (
@@ -63,7 +62,6 @@ export const CategoryCreate = () => {
             return;
         }
 
-        await queryClient.invalidateQueries({ queryKey: categoryKeys.all });
         navigate(`/categories/${created.id}`);
     };
 

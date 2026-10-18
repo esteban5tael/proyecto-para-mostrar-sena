@@ -10,7 +10,6 @@
 
 import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
 
 import {
     Breadcrumb,
@@ -24,7 +23,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { CategoryForm } from "@/components/category";
 import { handleApiError } from "@/lib/api-error-handler";
-import { ApiError, categoryKeys, useCategory, useUpdateCategory } from "@/queries";
+import { ApiError, useCategory, useUpdateCategory } from "@/queries";
 import type { CreateCategoryDto, UpdateCategoryDto } from "@/types";
 
 /**
@@ -43,13 +42,12 @@ export const CategoryEdit = () => {
         refetch,
     } = useCategory(id ?? "");
 
-    const queryClient = useQueryClient();
     const updateMutation = useUpdateCategory();
 
     /**
-     * Guarda los cambios y espera a que el dominio categoría quede
-     * invalidado antes de navegar, para que el detalle montado tras la
-     * redirección refetchee los datos nuevos.
+     * Guarda los cambios y navega al detalle. El hook de mutación ya
+     * invalidó y esperó el refetch del dominio, por lo que el detalle
+     * montado tras la redirección muestra los datos nuevos.
      * @param payload - Payload del formulario (nombre, descripción, isActive)
      */
     const handleFormSubmit = async (
@@ -70,9 +68,6 @@ export const CategoryEdit = () => {
             return;
         }
 
-        // El hook ya invalidó categoryKeys.all; este await garantiza que
-        // las queries montadas terminen su refetch antes del navigate.
-        await queryClient.invalidateQueries({ queryKey: categoryKeys.all });
         navigate(`/categories/${id}`);
     };
 

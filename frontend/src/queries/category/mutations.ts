@@ -78,11 +78,14 @@ export function useCreateCategory(
             }
             return res.data;
         },
-        // La invalidación corre primero; el callback del
-        // consumidor se ejecuta después.
-        onSuccess: (data, variables, onMutateResult, context) => {
-            void queryClient.invalidateQueries({ queryKey: categoryKeys.all });
-            options?.onSuccess?.(data, variables, onMutateResult, context);
+        // La invalidación corre primero y se espera; así mutateAsync
+        // resuelve solo cuando el refetch de queries activas terminó.
+        // El callback del consumidor se ejecuta después.
+        onSuccess: async (data, variables, onMutateResult, context) => {
+            await queryClient.invalidateQueries({
+                queryKey: categoryKeys.all,
+            });
+            await options?.onSuccess?.(data, variables, onMutateResult, context);
         },
         onError: (error, variables, onMutateResult, context) => {
             options?.onError?.(error, variables, onMutateResult, context);
@@ -134,9 +137,11 @@ export function useUpdateCategory(
             }
             return res.data;
         },
-        onSuccess: (data, variables, onMutateResult, context) => {
-            void queryClient.invalidateQueries({ queryKey: categoryKeys.all });
-            options?.onSuccess?.(data, variables, onMutateResult, context);
+        onSuccess: async (data, variables, onMutateResult, context) => {
+            await queryClient.invalidateQueries({
+                queryKey: categoryKeys.all,
+            });
+            await options?.onSuccess?.(data, variables, onMutateResult, context);
         },
         onError: (error, variables, onMutateResult, context) => {
             options?.onError?.(error, variables, onMutateResult, context);
@@ -186,9 +191,11 @@ export function useDeleteCategory(
                 throw new ApiError(res.statusCode, res.message, res.errors);
             }
         },
-        onSuccess: (data, variables, onMutateResult, context) => {
-            void queryClient.invalidateQueries({ queryKey: categoryKeys.all });
-            options?.onSuccess?.(data, variables, onMutateResult, context);
+        onSuccess: async (data, variables, onMutateResult, context) => {
+            await queryClient.invalidateQueries({
+                queryKey: categoryKeys.all,
+            });
+            await options?.onSuccess?.(data, variables, onMutateResult, context);
         },
         onError: (error, variables, onMutateResult, context) => {
             options?.onError?.(error, variables, onMutateResult, context);
