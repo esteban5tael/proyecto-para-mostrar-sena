@@ -23,7 +23,9 @@ export const categorySchema = z.object({
   id: z.uuid(),
   name: z.string().min(2).max(100),
   slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
-  description: z.string().min(10).max(500),
+  // El backend la guarda como text NULL y admite hasta 2000
+  // caracteres, sin mínimo: el schema no impone más que el servidor.
+  description: z.string().max(2000).nullable(),
   isActive: z.boolean(),
   // Product[] pasa "tal cual", sin validación interna
   products: z.array(z.custom<Product>(() => true)),
@@ -39,7 +41,9 @@ export const categorySchema = z.object({
 export const createCategorySchema = z
   .object({
     name: z.string().min(2).max(100),
-    description: z.string().min(10).max(500),
+    // `@IsOptional()` en el DTO: se puede omitir; "" se convierte
+    // en null del lado del servidor. Máximo 2000 como el backend.
+    description: z.string().max(2000).optional(),
     isActive: z.boolean().optional().default(true),
   })
   .strict();

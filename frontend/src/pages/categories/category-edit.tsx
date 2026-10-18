@@ -160,7 +160,9 @@ export const CategoryEdit = () => {
                 mode="edit"
                 defaultValues={{
                     name: category.name,
-                    description: category.description,
+                    // El backend puede devolver description null; el
+                    // formulario usa "" para evitar un valor controlado nulo.
+                    description: category.description ?? "",
                     isActive: category.isActive,
                 }}
                 isSubmitting={updateMutation.isPending}

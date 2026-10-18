@@ -165,7 +165,11 @@ export const updateCategory = async (
 
 /**
  * Elimina una categoría (soft-delete en el backend:
- * marca isActive = false internamente).
+ * marca isActive = false y desactiva en cascada sus
+ * productos).
+ *
+ * El backend responde 204 sin cuerpo, por eso no se lee
+ * ni se parsea la respuesta.
  *
  * @param id - Identificador de la categoría a eliminar
  * @returns GeneralResponse con data null o error normalizado
@@ -174,8 +178,7 @@ export const deleteCategory = async (
     id: string
 ): Promise<GeneralResponse<null>> => {
     try {
-        // El backend hace soft-delete (isActive = false)
-        // internamente y responde { message } o vacío.
+        // 204 sin cuerpo: no hay respuesta que validar ni devolver.
         await api.delete(`${BASE}/${id}`);
         return ok(null);
     } catch (e) {
