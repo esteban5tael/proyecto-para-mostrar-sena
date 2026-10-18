@@ -1,7 +1,10 @@
 // src/lib/axios.ts
 import axios, { AxiosError } from "axios";
 import { API_URL } from "./constants";
-import type { NestErrorResponse,GeneralResponse } from "@/types/general-response.interface";
+import type {
+    NestErrorResponse,
+    GeneralResponse,
+} from "@/types/general-response.interface";
 
 
 export const api = axios.create({
@@ -9,6 +12,22 @@ export const api = axios.create({
     headers: { "Content-Type": "application/json" },
     timeout: 10000,
 });
+
+/**
+ * Error normalizado que el interceptor adjunta a los errores de axios
+ * para que la UI y toFail trabajen con un shape estable.
+ */
+interface NormalizedError {
+    statusCode: number;
+    error: string;
+    message: string;
+    errors: string[];
+}
+
+/** Error de axios con el shape normalizado adjunto por el interceptor. */
+type NormalizedAxiosError = AxiosError<NestErrorResponse> & {
+    normalized?: NormalizedError;
+};
 
 // ----- Request -----
 api.interceptors.request.use(
@@ -50,7 +69,7 @@ api.interceptors.response.use(
         }
 
         // Adjuntamos un shape estable al error para la UI
-        (error as any).normalized = {
+        (error as NormalizedAxiosError).normalized = {
             statusCode: status,
             error: body?.error ?? error.code ?? "Error",
             message,
@@ -64,7 +83,7 @@ api.interceptors.response.use(
 export const toFail = <T = never>(
     error: unknown,
 ): GeneralResponse<T> => {
-    const norm = (error as any)?.normalized;
+    const norm = (error as NormalizedAxiosError)?.normalized;
     if (norm) {
         return {
             success: false,

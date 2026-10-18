@@ -9,7 +9,7 @@
  * @module src/components/category/category-form
  */
 
-import { useForm, type Resolver } from "react-hook-form";
+import { useForm, useWatch, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "@/components/ui/button";
@@ -70,6 +70,10 @@ export function CategoryForm({
 
     const { errors } = form.formState;
 
+    // useWatch en lugar de form.watch: el hook es compatible con el
+    // React Compiler y evita que se omita la memoización del componente.
+    const isActive = useWatch({ control: form.control, name: "isActive" });
+
     return (
         <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
             <div
@@ -89,11 +93,11 @@ export function CategoryForm({
 
                 {mode === "edit" && (
                     <div className="flex items-center gap-2 self-end pb-2">
-                        {/* watch es necesario: el checkbox controlado
-                            necesita el valor actual del form. */}
+                        {/* El checkbox controlado se alimenta de useWatch;
+                            setValue actualiza el form al cambiarlo. */}
                         <Checkbox
                             id="category-is-active"
-                            checked={form.watch("isActive")}
+                            checked={isActive}
                             onCheckedChange={(checked) =>
                                 form.setValue("isActive", checked)
                             }
