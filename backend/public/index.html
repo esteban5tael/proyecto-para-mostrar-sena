@@ -1,11 +1,513 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{ JEBC-DeV}</title>
+    <title>Exhibition System · API (backend)</title>
+
+    <!-- Tema inicial: aplica la preferencia antes del primer pintado para
+         evitar destello claro. localStorage primero; si no hay elección,
+         preferencia del sistema. Si localStorage está bloqueado, degrada
+         al esquema del sistema sin errores. -->
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem("theme");
+                var theme = stored ||
+                    (window.matchMedia("(prefers-color-scheme: dark)").matches
+                        ? "dark" : "light");
+                if (theme === "dark") {
+                    document.documentElement.classList.add("dark");
+                }
+            } catch (e) {
+                if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                    document.documentElement.classList.add("dark");
+                }
+            }
+        })();
+    </script>
+
+    <!-- Orden de capas: se declara ANTES de que el script de Tailwind inyecte
+         su CSS compilado, para que la capa `fallback` (enlaces verdes cuando
+         el CDN no carga) quede por debajo de base/utilities cuando sí carga. -->
+    <style>@layer fallback, theme, base, components, utilities;</style>
+
+    <!-- Tailwind CSS v4 en el navegador: sin paso de build en el backend -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <!-- Tema copiado de frontend/src/index.css: variables oklch (claro/oscuro
+         con verde neón) en un bloque de estilos normal para que los colores
+         sean inmediatos aunque el CDN no cargue. -->
+    <style>
+        :root {
+            --background: oklch(1 0 0);
+            --foreground: oklch(0.148 0.004 228.8);
+            --card: oklch(1 0 0);
+            --card-foreground: oklch(0.148 0.004 228.8);
+            --popover: oklch(1 0 0);
+            --popover-foreground: oklch(0.148 0.004 228.8);
+            --primary: oklch(0.75 0.22 145);
+            --primary-foreground: oklch(0.1 0.02 145);
+            --secondary: oklch(0.967 0.001 286.375);
+            --secondary-foreground: oklch(0.21 0.006 285.885);
+            --muted: oklch(0.963 0.002 197.1);
+            --muted-foreground: oklch(0.56 0.021 213.5);
+            --accent: oklch(0.75 0.22 145);
+            --accent-foreground: oklch(0.1 0.02 145);
+            --destructive: oklch(0.577 0.245 27.325);
+            --border: oklch(0.925 0.005 214.3);
+            --input: oklch(0.925 0.005 214.3);
+            --ring: oklch(0.75 0.22 145);
+            --chart-1: oklch(0.75 0.22 145);
+            --chart-2: oklch(0.7 0.2 160);
+            --chart-3: oklch(0.6 0.18 130);
+            --chart-4: oklch(0.8 0.15 180);
+            --chart-5: oklch(0.65 0.25 140);
+            --radius: 0.15rem; /* Casi recto, estilo tty/console */
+            --sidebar: oklch(0.987 0.002 197.1);
+            --sidebar-foreground: oklch(0.148 0.004 228.8);
+            --sidebar-primary: oklch(0.75 0.22 145);
+            --sidebar-primary-foreground: oklch(0.1 0.02 145);
+            --sidebar-accent: oklch(0.963 0.002 197.1);
+            --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
+            --sidebar-border: oklch(0.925 0.005 214.3);
+            --sidebar-ring: oklch(0.75 0.22 145);
+        }
+
+        .dark {
+            /* Fondo negro consola */
+            --background: oklch(0.11 0.005 240);
+            --foreground: oklch(0.95 0.03 145);
+
+            --card: oklch(0.14 0.01 220);
+            --card-foreground: oklch(0.98 0.01 145);
+            --popover: oklch(0.14 0.01 220);
+            --popover-foreground: oklch(0.98 0.01 145);
+
+            /* VERDE NEÓN CYBERPUNK TERMINAL */
+            --primary: oklch(0.82 0.26 145);
+            --primary-foreground: oklch(0.1 0.03 145);
+
+            --secondary: oklch(0.18 0.02 220);
+            --secondary-foreground: oklch(0.9 0.05 145);
+
+            --muted: oklch(0.18 0.01 220);
+            --muted-foreground: oklch(0.65 0.05 145);
+
+            --accent: oklch(0.82 0.26 145);
+            --accent-foreground: oklch(0.1 0.03 145);
+
+            --destructive: oklch(0.65 0.25 25);
+
+            --border: oklch(0.82 0.26 145 / 30%);
+            --input: oklch(0.82 0.26 145 / 20%);
+            --ring: oklch(0.82 0.26 145);
+
+            --chart-1: oklch(0.82 0.26 145);
+            --chart-2: oklch(0.75 0.2 165);
+            --chart-3: oklch(0.7 0.22 130);
+            --chart-4: oklch(0.65 0.25 185);
+            --chart-5: oklch(0.9 0.28 140);
+
+            --sidebar: oklch(0.12 0.008 230);
+            --sidebar-foreground: oklch(0.95 0.03 145);
+            --sidebar-primary: oklch(0.82 0.26 145);
+            --sidebar-primary-foreground: oklch(0.1 0.03 145);
+            --sidebar-accent: oklch(0.18 0.02 220);
+            --sidebar-accent-foreground: oklch(0.82 0.26 145);
+            --sidebar-border: oklch(0.82 0.26 145 / 20%);
+            --sidebar-ring: oklch(0.82 0.26 145);
+        }
+
+        /* Degradación sin CDN: la página sigue legible con HTML puro */
+        body {
+            background: var(--background);
+            color: var(--foreground);
+            font-family: monospace;
+        }
+
+        @layer fallback {
+            /* Enlaces visibles sin Tailwind. Con el CDN, gana la capa base
+               de Tailwind (a { color: inherit }) y el enlace hereda el color
+               de su contexto, igual que en la home del frontend. */
+            a {
+                color: var(--primary);
+            }
+        }
+    </style>
+
+    <!-- Mapeo @theme para que bg-background, text-primary, border-border,
+         etc. resuelvan igual que en el frontend -->
+    <style type="text/tailwindcss">
+        @custom-variant dark (&:is(.dark *));
+
+        @theme inline {
+            /* Definimos la fuente Monospaced para todo */
+            --font-sans: monospace;
+            --font-mono: monospace;
+            --font-heading: monospace;
+
+            --color-sidebar-ring: var(--sidebar-ring);
+            --color-sidebar-border: var(--sidebar-border);
+            --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+            --color-sidebar-accent: var(--sidebar-accent);
+            --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+            --color-sidebar-primary: var(--sidebar-primary);
+            --color-sidebar-foreground: var(--sidebar-foreground);
+            --color-sidebar: var(--sidebar);
+            --color-chart-5: var(--chart-5);
+            --color-chart-4: var(--chart-4);
+            --color-chart-3: var(--chart-3);
+            --color-chart-2: var(--chart-2);
+            --color-chart-1: var(--chart-1);
+            --color-ring: var(--ring);
+            --color-input: var(--input);
+            --color-border: var(--border);
+            --color-destructive: var(--destructive);
+            --color-accent-foreground: var(--accent-foreground);
+            --color-accent: var(--accent);
+            --color-muted-foreground: var(--muted-foreground);
+            --color-muted: var(--muted);
+            --color-secondary-foreground: var(--secondary-foreground);
+            --color-secondary: var(--secondary);
+            --color-primary-foreground: var(--primary-foreground);
+            --color-primary: var(--primary);
+            --color-popover-foreground: var(--popover-foreground);
+            --color-popover: var(--popover);
+            --color-card-foreground: var(--card-foreground);
+            --color-card: var(--card);
+            --color-foreground: var(--foreground);
+            --color-background: var(--background);
+            --radius-sm: calc(var(--radius) * 0.6);
+            --radius-md: calc(var(--radius) * 0.8);
+            --radius-lg: var(--radius);
+            --radius-xl: calc(var(--radius) * 1.4);
+            --radius-2xl: calc(var(--radius) * 1.8);
+            --radius-3xl: calc(var(--radius) * 2.2);
+            --radius-4xl: calc(var(--radius) * 2.6);
+        }
+
+        @layer base {
+            * {
+                @apply border-border outline-ring/50;
+            }
+            body {
+                @apply bg-background text-foreground font-mono;
+            }
+            html {
+                @apply font-mono;
+            }
+        }
+    </style>
 </head>
-<body>
-    <h1>JEBC-DeV</h1>
+<body class="bg-background text-foreground font-mono antialiased">
+    <div class="mx-auto grid w-full max-w-4xl gap-4 px-4 py-6">
+
+        <!-- Barra superior: marca + alternador de tema -->
+        <header class="flex items-center justify-between border-b border-border pb-4">
+            <p class="text-sm font-medium tracking-wide text-primary">
+                exhibition-system · backend
+            </p>
+            <button
+                id="theme-toggle"
+                type="button"
+                aria-label="Alternar tema claro u oscuro"
+                class="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+                Tema
+            </button>
+        </header>
+
+        <!-- Hero -->
+        <section class="grid gap-6 pb-8">
+            <div class="grid gap-3">
+                <p class="text-sm font-medium tracking-wide text-primary">
+                    Proyecto educativo · Fullstack mínimo
+                </p>
+                <h1 class="font-semibold tracking-tight text-4xl sm:text-5xl">
+                    Exhibition System API
+                </h1>
+                <p class="max-w-2xl text-muted-foreground">
+                    El lado servidor del Sistema de Exposiciones: una API REST
+                    en NestJS que valida, aplica reglas de negocio y persiste
+                    en PostgreSQL. Esta página (servida por el propio backend
+                    en la raíz) explica qué expone y cómo probarla, sin
+                    necesidad de tener el frontend corriendo.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+                <a
+                    href="/api/v1/docs"
+                    target="_blank"
+                    rel="noreferrer"
+                    class="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                    Swagger (API) ↗
+                </a>
+                <a
+                    href="/api/v1/products"
+                    class="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                    GET /api/v1/products →
+                </a>
+                <a
+                    href="/api/v1/categories"
+                    class="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                    GET /api/v1/categories →
+                </a>
+            </div>
+
+            <p class="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                <span aria-hidden="true">▣</span>
+                Desplázate para recorrer el backend, de arriba hacia abajo.
+            </p>
+        </section>
+
+        <!-- Stack del backend -->
+        <section aria-labelledby="stack-heading" class="grid gap-4 py-8">
+            <h2 id="stack-heading" class="font-semibold tracking-tight text-2xl">
+                Con qué está construido
+            </h2>
+            <p class="max-w-2xl text-muted-foreground">
+                Tres piezas del lado servidor, cada una con una sola
+                responsabilidad. Todo vive en la carpeta <code class="text-sm">backend/</code>.
+            </p>
+
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <article class="grid gap-3 rounded-lg border border-border p-4">
+                    <div class="flex items-center gap-2">
+                        <span aria-hidden="true" class="text-primary">◆</span>
+                        <h3 class="font-medium">API</h3>
+                    </div>
+                    <p class="text-sm font-medium text-muted-foreground">NestJS 12</p>
+                    <p class="text-sm">
+                        Recibe peticiones HTTP, valida los DTOs y despacha la
+                        lógica de negocio.
+                    </p>
+                    <ul class="grid gap-1.5 text-sm text-muted-foreground">
+                        <li><span aria-hidden="true">·</span> Puerto 5555 con prefijo global <code class="text-xs">/api/v1</code></li>
+                        <li><span aria-hidden="true">·</span> ValidationPipe global: whitelist + forbidNonWhitelisted</li>
+                        <li><span aria-hidden="true">·</span> CORS abierto (<code class="text-xs">origin: '*'</code>)</li>
+                        <li><span aria-hidden="true">·</span> Módulos: categories, products y seeders</li>
+                    </ul>
+                </article>
+
+                <article class="grid gap-3 rounded-lg border border-border p-4">
+                    <div class="flex items-center gap-2">
+                        <span aria-hidden="true" class="text-primary">◆</span>
+                        <h3 class="font-medium">Persistencia</h3>
+                    </div>
+                    <p class="text-sm font-medium text-muted-foreground">TypeORM + PostgreSQL</p>
+                    <p class="text-sm">
+                        Traduce los objetos del código a tablas y consultas
+                        SQL reales.
+                    </p>
+                    <ul class="grid gap-1.5 text-sm text-muted-foreground">
+                        <li><span aria-hidden="true">·</span> Puerto 5432, base <code class="text-xs">exhibition_system</code></li>
+                        <li><span aria-hidden="true">·</span> Schema autogenerado: <code class="text-xs">synchronize: true</code> (sin migraciones)</li>
+                        <li><span aria-hidden="true">·</span> <code class="text-xs">autoLoadEntities</code>: las entities se registran por módulo</li>
+                        <li><span aria-hidden="true">·</span> Relación Many-to-One: muchos productos por categoría</li>
+                    </ul>
+                </article>
+
+                <article class="grid gap-3 rounded-lg border border-border p-4">
+                    <div class="flex items-center gap-2">
+                        <span aria-hidden="true" class="text-primary">◆</span>
+                        <h3 class="font-medium">Documentación</h3>
+                    </div>
+                    <p class="text-sm font-medium text-muted-foreground">Swagger UI</p>
+                    <p class="text-sm">
+                        Documentación interactiva generada desde los DTOs y
+                        decoradores de cada controller.
+                    </p>
+                    <ul class="grid gap-1.5 text-sm text-muted-foreground">
+                        <li><span aria-hidden="true">·</span> Disponible en <a class="text-sm" href="/api/v1/docs" target="_blank" rel="noreferrer">/api/v1/docs ↗</a></li>
+                        <li><span aria-hidden="true">·</span> Se sirve dentro del prefijo global <code class="text-xs">/api/v1</code></li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <!-- Endpoints -->
+        <section aria-labelledby="endpoints-heading" class="grid gap-4 py-8">
+            <h2 id="endpoints-heading" class="font-semibold tracking-tight text-2xl">
+                Qué expone la API
+            </h2>
+            <p class="max-w-2xl text-muted-foreground">
+                Todos los recursos viven bajo <code class="text-sm">/api/v1</code>.
+                Prueba cualquier uno desde{" "}
+                <a class="text-sm" href="/api/v1/docs" target="_blank" rel="noreferrer">Swagger ↗</a>.
+            </p>
+
+            <article class="grid gap-3 rounded-lg border border-border p-4">
+                <h3 class="font-medium">products</h3>
+                <ul class="grid gap-1.5 text-sm text-muted-foreground">
+                    <li><code class="text-xs text-primary">GET</code> <code class="text-xs">/api/v1/products</code> — listado</li>
+                    <li><code class="text-xs text-primary">GET</code> <code class="text-xs">/api/v1/products/:id</code> — detalle por id</li>
+                    <li><code class="text-xs text-primary">POST</code> <code class="text-xs">/api/v1/products</code> — crear (body validado)</li>
+                    <li><code class="text-xs text-primary">PATCH</code> <code class="text-xs">/api/v1/products/:id</code> — actualización parcial</li>
+                    <li><code class="text-xs text-primary">DELETE</code> <code class="text-xs">/api/v1/products/:id</code> — eliminar</li>
+                </ul>
+            </article>
+
+            <article class="grid gap-3 rounded-lg border border-border p-4">
+                <h3 class="font-medium">categories</h3>
+                <ul class="grid gap-1.5 text-sm text-muted-foreground">
+                    <li><code class="text-xs text-primary">GET</code> <code class="text-xs">/api/v1/categories</code> — listado</li>
+                    <li><code class="text-xs text-primary">GET</code> <code class="text-xs">/api/v1/categories/:id</code> — detalle por id</li>
+                    <li><code class="text-xs text-primary">GET</code> <code class="text-xs">/api/v1/categories/slug/:slug</code> — detalle por slug</li>
+                    <li><code class="text-xs text-primary">POST</code> <code class="text-xs">/api/v1/categories</code> — crear (body validado)</li>
+                    <li><code class="text-xs text-primary">PATCH</code> <code class="text-xs">/api/v1/categories/:id</code> — actualización parcial</li>
+                    <li><code class="text-xs text-primary">DELETE</code> <code class="text-xs">/api/v1/categories/:id</code> — eliminar</li>
+                </ul>
+            </article>
+
+            <article class="grid gap-3 rounded-lg border border-border p-4">
+                <h3 class="font-medium">seeders</h3>
+                <ul class="grid gap-1.5 text-sm text-muted-foreground">
+                    <li><code class="text-xs text-primary">POST</code> <code class="text-xs">/api/v1/seeders</code> — resetea y siembra 5 categorías × 5 productos (solo desarrollo)</li>
+                </ul>
+            </article>
+        </section>
+
+        <!-- Flujo de una petición, vista desde el servidor -->
+        <section aria-labelledby="flujo-heading" class="grid gap-4 py-8">
+            <h2 id="flujo-heading" class="font-semibold tracking-tight text-2xl">
+                El viaje de una petición (visto desde aquí)
+            </h2>
+            <p class="max-w-2xl text-muted-foreground">
+                Qué hace el backend cuando, por ejemplo, el frontend pide{" "}
+                <code class="text-sm">GET /api/v1/products</code>:
+            </p>
+
+            <ol class="grid gap-3">
+                <li class="grid gap-1 rounded-lg border border-border p-4 sm:grid-cols-[auto_1fr] sm:gap-4">
+                    <span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full border border-border text-sm font-medium text-primary">1</span>
+                    <div class="grid gap-1">
+                        <h3 class="font-medium">Llega al puerto 5555</h3>
+                        <p class="text-sm">La petición HTTP entra al servidor; <code class="text-xs">ServeStaticModule</code> atiende la raíz <code class="text-xs">/</code> (esta página) y el resto pasa al prefijo <code class="text-xs">/api/v1</code>.</p>
+                        <code class="text-xs text-muted-foreground">backend/src/app.module.ts · main.ts</code>
+                    </div>
+                </li>
+                <li class="grid gap-1 rounded-lg border border-border p-4 sm:grid-cols-[auto_1fr] sm:gap-4">
+                    <span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full border border-border text-sm font-medium text-primary">2</span>
+                    <div class="grid gap-1">
+                        <h3 class="font-medium">Validación global</h3>
+                        <p class="text-sm">El <code class="text-xs">ValidationPipe</code> valida el DTO con <code class="text-xs">whitelist + forbidNonWhitelisted</code>: un campo no declarado rechaza toda la request.</p>
+                        <code class="text-xs text-muted-foreground">backend/src/main.ts</code>
+                    </div>
+                </li>
+                <li class="grid gap-1 rounded-lg border border-border p-4 sm:grid-cols-[auto_1fr] sm:gap-4">
+                    <span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full border border-border text-sm font-medium text-primary">3</span>
+                    <div class="grid gap-1">
+                        <h3 class="font-medium">El controller despacha</h3>
+                        <p class="text-sm">El controller del recurso (<code class="text-xs">products</code> o <code class="text-xs">categories</code>) recibe la ruta y delega en su service.</p>
+                        <code class="text-xs text-muted-foreground">backend/src/products/products.controller.ts</code>
+                    </div>
+                </li>
+                <li class="grid gap-1 rounded-lg border border-border p-4 sm:grid-cols-[auto_1fr] sm:gap-4">
+                    <span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full border border-border text-sm font-medium text-primary">4</span>
+                    <div class="grid gap-1">
+                        <h3 class="font-medium">TypeORM consulta PostgreSQL</h3>
+                        <p class="text-sm">El service traduce la petición en una consulta TypeORM y PostgreSQL (puerto 5432) devuelve las filas.</p>
+                        <code class="text-xs text-muted-foreground">backend/src/products/products.service.ts</code>
+                    </div>
+                </li>
+                <li class="grid gap-1 rounded-lg border border-border p-4 sm:grid-cols-[auto_1fr] sm:gap-4">
+                    <span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full border border-border text-sm font-medium text-primary">5</span>
+                    <div class="grid gap-1">
+                        <h3 class="font-medium">La respuesta JSON regresa</h3>
+                        <p class="text-sm">El JSON vuelve por <code class="text-xs">/api/v1</code> y el frontend lo cachea con TanStack Query. Si no hay frontend, esta página y Swagger siguen siendo la puerta de entrada.</p>
+                        <code class="text-xs text-muted-foreground">GET /api/v1/products</code>
+                    </div>
+                </li>
+            </ol>
+        </section>
+
+        <!-- Estructura del backend -->
+        <section aria-labelledby="estructura-heading" class="grid gap-4 py-8">
+            <h2 id="estructura-heading" class="font-semibold tracking-tight text-2xl">
+                Estructura del backend
+            </h2>
+            <p class="max-w-2xl text-muted-foreground">
+                Un módulo por dominio: controller (HTTP), service (lógica) y
+                sus DTOs y entities.
+            </p>
+
+            <pre class="overflow-x-auto rounded-lg border border-border p-4 text-xs leading-relaxed"><code>backend/
+├── src/
+│   ├── main.ts            # Bootstrap: prefijo /api/v1, ValidationPipe, Swagger, CORS
+│   ├── app.module.ts      # TypeORM → PostgreSQL, config y ServeStaticModule
+│   ├── categories/        # controller · service · dto · entities
+│   ├── products/          # controller · service · dto · entities
+│   └── seeders/           # POST /api/v1/seeders (5 categorías × 5 productos)
+├── public/                # Esta landing, servida en la raíz del server
+├── .env.template          # Plantilla: PORT=5555, API_PREFIX=/api/v1, datos de BD
+└── package.json           # pnpm: dev · test · lint (oxlint) · format</code></pre>
+
+            <div class="grid gap-3 sm:grid-cols-3">
+                <div class="grid gap-1">
+                    <h3 class="text-sm font-medium">backend/src/</h3>
+                    <p class="text-sm text-muted-foreground">
+                        El código TypeScript de la API. Sin migraciones: el
+                        schema se auto-genera al arrancar.
+                    </p>
+                </div>
+                <div class="grid gap-1">
+                    <h3 class="text-sm font-medium">backend/public/</h3>
+                    <p class="text-sm text-muted-foreground">
+                        Archivos estáticos servidos en la raíz — esta página
+                        es el <code class="text-xs">index.html</code> que ves.
+                    </p>
+                </div>
+                <div class="grid gap-1">
+                    <h3 class="text-sm font-medium">Documentación</h3>
+                    <p class="text-sm text-muted-foreground">
+                        Guías en <code class="text-xs">backend/README.md</code> y{" "}
+                        <code class="text-xs">README.md</code> de la raíz del repo.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pie -->
+        <footer class="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4 text-sm text-muted-foreground">
+            <p>Sistema de Exposiciones · material educativo TÉCNICO EN PROGRAMACION DE SOFTWARE (SENA)</p>
+            <p>
+                <a href="http://localhost:5173" target="_blank" rel="noreferrer">Frontend ↗</a>
+                ·
+                <a href="/api/v1/docs" target="_blank" rel="noreferrer">Swagger ↗</a>
+            </p>
+        </footer>
+    </div>
+
+    <!-- Alternador de tema: sin dependencias, persiste en localStorage -->
+    <script>
+        (function () {
+            var btn = document.getElementById("theme-toggle");
+            if (!btn) return;
+
+            function render() {
+                var dark = document.documentElement.classList.contains("dark");
+                btn.textContent = dark ? "☀ tema claro" : "☾ tema oscuro";
+                btn.setAttribute("aria-pressed", dark ? "true" : "false");
+            }
+
+            btn.addEventListener("click", function () {
+                var dark = document.documentElement.classList.toggle("dark");
+                try {
+                    localStorage.setItem("theme", dark ? "dark" : "light");
+                } catch (e) {
+                    /* localStorage bloqueado: el tema se mantiene en esta
+                       visita y la próxima cae al esquema del sistema */
+                }
+                render();
+            });
+
+            render();
+        })();
+    </script>
 </body>
 </html>
