@@ -10,6 +10,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
 
 import {
@@ -29,6 +30,7 @@ import {
     CategoryDeleteDialog,
 } from "@/components/category";
 import { handleApiError } from "@/lib/api-error-handler";
+import { cardHover, listItemVariants } from "@/lib/motion";
 import { useCategories, useDeleteCategory } from "@/queries";
 import type { Category } from "@/types";
 
@@ -160,19 +162,38 @@ export const CategoriesList = () => {
             </header>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {categories.map((category) => (
-                    <CategoryCard
-                        key={category.id}
-                        category={category}
-                        onView={(id) => navigate(`/categories/${id}`)}
-                        onEdit={(id) => navigate(`/categories/${id}/edit`)}
-                        onDelete={handleDeleteClick}
-                        isDeleting={
-                            deleteMutation.isPending &&
-                            deletingCategory?.id === category.id
-                        }
-                    />
-                ))}
+                {/* AnimatePresence dentro del grid para que las
+                    tarjetas que salen se desvanezcan sin que el
+                    contenedor se remonte. El wrapper es un grid de
+                    una columna para que la tarjeta siga llenando la
+                    celda y las tarjetas de una fila conserven la
+                    misma altura que tenían como ítem del grid. */}
+                <AnimatePresence>
+                    {categories.map((category, index) => (
+                        <motion.div
+                            key={category.id}
+                            className="grid"
+                            custom={index}
+                            variants={listItemVariants}
+                            whileHover={cardHover}
+                        >
+                            <CategoryCard
+                                category={category}
+                                onView={(id) =>
+                                    navigate(`/categories/${id}`)
+                                }
+                                onEdit={(id) =>
+                                    navigate(`/categories/${id}/edit`)
+                                }
+                                onDelete={handleDeleteClick}
+                                isDeleting={
+                                    deleteMutation.isPending &&
+                                    deletingCategory?.id === category.id
+                                }
+                            />
+                        </motion.div>
+                    ))}
+                </AnimatePresence>
             </div>
 
             <CategoryDeleteDialog

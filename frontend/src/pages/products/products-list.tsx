@@ -12,6 +12,7 @@
 
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
+import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
 
 import {
@@ -37,6 +38,7 @@ import {
     ProductDeleteDialog,
 } from "@/components/product";
 import { handleApiError } from "@/lib/api-error-handler";
+import { cardHover, listItemVariants } from "@/lib/motion";
 import { useCategories, useDeleteProduct, useProducts } from "@/queries";
 import type { Product } from "@/types";
 
@@ -271,19 +273,38 @@ export const ProductsList = () => {
                 </div>
             ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {productosFiltrados.map((product) => (
-                        <ProductCard
-                            key={product.id}
-                            product={product}
-                            onView={(id) => navigate(`/products/${id}`)}
-                            onEdit={(id) => navigate(`/products/${id}/edit`)}
-                            onDelete={handleDeleteClick}
-                            isDeleting={
-                                deleteMutation.isPending &&
-                                deletingProduct?.id === product.id
-                            }
-                        />
-                    ))}
+                    {/* AnimatePresence dentro del grid para que las
+                        tarjetas que salen se desvanezcan sin que el
+                        contenedor se remonte. El wrapper es un grid de
+                        una columna para que la tarjeta siga llenando la
+                        celda y las tarjetas de una fila conserven la
+                        misma altura que tenían como ítem del grid. */}
+                    <AnimatePresence>
+                        {productosFiltrados.map((product, index) => (
+                            <motion.div
+                                key={product.id}
+                                className="grid"
+                                custom={index}
+                                variants={listItemVariants}
+                                whileHover={cardHover}
+                            >
+                                <ProductCard
+                                    product={product}
+                                    onView={(id) =>
+                                        navigate(`/products/${id}`)
+                                    }
+                                    onEdit={(id) =>
+                                        navigate(`/products/${id}/edit`)
+                                    }
+                                    onDelete={handleDeleteClick}
+                                    isDeleting={
+                                        deleteMutation.isPending &&
+                                        deletingProduct?.id === product.id
+                                    }
+                                />
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
                 </div>
             )}
 
