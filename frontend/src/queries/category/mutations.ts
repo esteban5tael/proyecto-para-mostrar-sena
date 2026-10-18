@@ -26,7 +26,8 @@ import type {
     UpdateCategoryDto,
 } from "@/schemas/category.schema";
 
-import { ApiError } from "./queries";
+import { ApiError } from "@/queries/api-error";
+
 import { categoryKeys } from "./keys";
 
 /**

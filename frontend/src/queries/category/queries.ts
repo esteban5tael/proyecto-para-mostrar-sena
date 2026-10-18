@@ -21,32 +21,13 @@ import {
     getCategoryBySlug,
 } from "@/services/category.service";
 import type { Category } from "@/schemas/category.schema";
+import { ApiError } from "@/queries/api-error";
 
 import { categoryKeys } from "./keys";
 
-/**
- * Error tipado que transporta el statusCode de NestJS y el
- * array de errores normalizados, para que la UI pueda
- * mostrarlos (por ejemplo, en un toast con join("\n")).
- */
-export class ApiError extends Error {
-    /** Código HTTP del error (0 si es de red) */
-    readonly statusCode: number;
-    /** Array de errores individuales (validación) */
-    readonly errors: string[];
-
-    /**
-     * @param statusCode - Código HTTP del error (0 si es de red)
-     * @param message - Mensaje normalizado del error
-     * @param errors - Array de errores individuales (validación)
-     */
-    constructor(statusCode: number, message: string, errors: string[] = []) {
-        super(message);
-        this.name = "ApiError";
-        this.statusCode = statusCode;
-        this.errors = errors;
-    }
-}
+// Re-export para conservar la API pública del dominio categoría:
+// los consumidores siguen importando ApiError desde "@/queries".
+export { ApiError };
 
 /**
  * Opciones configurables para los hooks de consulta de
