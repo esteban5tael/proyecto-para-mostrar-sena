@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Arquitectura del sistema de exposición (frontend + backend)",
+    "locale": "es",
+    "output": ".archify/architecture-exhibition-system-20261018-084746/exhibition-system.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/esteban5tael/proyecto-para-mostrar-sena.git",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "d8a97a11ae3ce7304c46ef528a4d9f58c8f4df22"
+    }
+  },
+  "components": [
+    {
+      "id": "user",
+      "type": "external",
+      "label": "Usuario",
+      "sublabel": "Navegador (SPA web)",
+      "icon": "person",
+      "pos": [40, 112],
+      "size": [150, 60]
+    },
+    {
+      "id": "router",
+      "type": "frontend",
+      "label": "React Router",
+      "sublabel": "rutas anidadas bajo Layout",
+      "pos": [255, 110],
+      "size": [165, 64],
+      "sources": [
+        { "path": "frontend/src/routes.tsx", "line": 29, "end_line": 53 }
+      ]
+    },
+    {
+      "id": "pages",
+      "type": "frontend",
+      "label": "Páginas y formularios",
+      "sublabel": "react-hook-form + Zod",
+      "pos": [513, 110],
+      "size": [150, 64],
+      "sources": [
+        { "path": "frontend/src/components/category/category-form.tsx", "line": 47, "end_line": 69 },
+        { "path": "frontend/src/schemas/category.schema.ts", "line": 22, "end_line": 34 }
+      ]
+    },
+    {
+      "id": "query",
+      "type": "frontend",
+      "label": "TanStack Query",
+      "sublabel": "caché 5 min · 1 reintento",
+      "pos": [737, 110],
+      "size": [150, 64],
+      "sources": [
+        { "path": "frontend/src/queries/query-client.ts", "line": 13, "end_line": 29 },
+        { "path": "frontend/src/queries/category/mutations.ts", "line": 86, "end_line": 89 }
+      ]
+    },
+    {
+      "id": "http",
+      "type": "frontend",
+      "label": "Services + Axios",
+      "sublabel": "safeParse · toFail",
+      "pos": [961, 110],
+      "size": [150, 64],
+      "sources": [
+        { "path": "frontend/src/lib/axios.ts", "line": 10, "end_line": 14 },
+        { "path": "frontend/src/lib/axios.ts", "line": 43, "end_line": 81 },
+        { "path": "frontend/src/services/category.service.ts", "line": 43, "end_line": 60 }
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API REST /api/v1",
+      "sublabel": "ValidationPipe · CORS *",
+      "tag": "Swagger en /api/v1/docs",
+      "pos": [951, 270],
+      "size": [170, 64],
+      "sources": [
+        { "path": "backend/src/main.ts", "line": 16, "end_line": 50 }
+      ]
+    },
+    {
+      "id": "categories",
+      "type": "backend",
+      "label": "Módulo categorías",
+      "sublabel": "soft-delete en cascada",
+      "pos": [540, 430],
+      "size": [170, 64],
+      "sources": [
+        { "path": "backend/src/categories/categories.controller.ts", "line": 34, "end_line": 98 },
+        { "path": "backend/src/categories/categories.service.ts", "line": 66, "end_line": 78 },
+        { "path": "backend/src/categories/categories.service.ts", "line": 190, "end_line": 200 }
+      ]
+    },
+    {
+      "id": "products",
+      "type": "backend",
+      "label": "Módulo productos",
+      "sublabel": "valida categoría activa",
+      "pos": [760, 430],
+      "size": [170, 64],
+      "sources": [
+        { "path": "backend/src/products/products.controller.ts", "line": 8, "end_line": 45 },
+        { "path": "backend/src/products/products.service.ts", "line": 24, "end_line": 49 }
+      ]
+    },
+    {
+      "id": "seeders",
+      "type": "backend",
+      "label": "Módulo seeders",
+      "sublabel": "TRUNCATE + siembra 5×5",
+      "tag": "solo dev",
+      "pos": [250, 430],
+      "size": [150, 64],
+      "sources": [
+        { "path": "backend/src/seeders/seeders.controller.ts", "line": 14, "end_line": 22 },
+        { "path": "backend/src/seeders/seeders.service.ts", "line": 87, "end_line": 153 }
+      ]
+    },
+    {
+      "id": "orm",
+      "type": "backend",
+      "label": "TypeORM",
+      "sublabel": "synchronize: true",
+      "pos": [610, 580],
+      "size": [170, 64],
+      "sources": [
+        { "path": "backend/src/app.module.ts", "line": 32, "end_line": 42 },
+        { "path": "backend/src/categories/entities/category.entity.ts", "line": 40, "end_line": 41 },
+        { "path": "backend/src/products/entities/product.entity.ts", "line": 44, "end_line": 60 }
+      ]
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "exhibition_system · :5432",
+      "pos": [610, 710],
+      "size": [170, 64],
+      "sources": [
+        { "path": "backend/src/app.module.ts", "line": 32, "end_line": 42 }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "frontend/ — Vite 8 + React 19 (SPA)",
+      "wraps": ["router", "pages", "query", "http"]
+    },
+    {
+      "kind": "region",
+      "label": "backend/ — NestJS 12 + TypeORM",
+      "wraps": ["api", "categories", "products", "seeders", "orm"]
+    }
+  ],
+  "connections": [
+    { "id": "user-router", "from": "user", "to": "router", "label": "GET /" },
+    { "id": "router-pages", "from": "router", "to": "pages", "label": "ruta activa" },
+    { "id": "pages-query", "from": "pages", "to": "query", "label": "useQuery" },
+    { "id": "query-http", "from": "query", "to": "http", "label": "services" },
+    { "id": "http-api", "from": "http", "to": "api", "label": "REST JSON", "variant": "emphasis" },
+    { "id": "api-categories", "from": "api", "to": "categories", "label": "CRUD categorías" },
+    { "id": "api-products", "from": "api", "to": "products", "label": "CRUD productos" },
+    { "id": "api-seeders", "from": "api", "to": "seeders", "label": "POST /seeders", "variant": "dashed" },
+    { "id": "seeders-categories", "from": "seeders", "to": "categories", "label": "reutiliza create()", "variant": "dashed" },
+    { "id": "seeders-orm", "from": "seeders", "to": "orm", "label": "TRUNCATE crudo", "variant": "dashed" },
+    { "id": "categories-orm", "from": "categories", "to": "orm", "label": "QueryBuilder" },
+    { "id": "products-orm", "from": "products", "to": "orm", "label": "QueryBuilder" },
+    { "id": "orm-postgres", "from": "orm", "to": "postgres", "label": "SQL", "variant": "emphasis" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Frontend",
+      "items": [
+        "SPA React 19 + Vite 8; `pnpm build` = `tsc -b && vite build` (único typecheck)",
+        "TanStack Query v5: staleTime 5 min, gcTime 10 min, refetchOnWindowFocus desactivado",
+        "Interceptor Axios adjunta `Bearer` si hay token en localStorage y normaliza errores con `toFail`",
+        "Formularios con zodResolver; toda respuesta del API se valida con Zod `safeParse`"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Backend",
+      "items": [
+        "Prefijo global `/api/v1` y `ValidationPipe` con whitelist + forbidNonWhitelisted",
+        "CORS `origin: *` y Swagger UI autogenerado en `/api/v1/docs`",
+        "ServeStaticModule sirve `backend/public/` en la raíz del server",
+        "ObserveModule (telemetría NestJS) registrado con credenciales de ejemplo"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Datos y negocio",
+      "items": [
+        "TypeORM con `autoLoadEntities` + `synchronize: true`: schema autogenerado, sin migraciones",
+        "Soft-delete lógico por `isActive`; bajar una categoría cascada en una transacción",
+        "Producto = 1 categoría activa vía FK `category_id` (relación 1-N)",
+        "`POST /api/v1/seeders` (solo dev) trunca y siembra 5 categorías × 5 productos",
+        "Sin módulo de autenticación: `JWT_SECRET` existe en `.env` pero nada lo usa"
+      ]
+    }
+  ]
+}

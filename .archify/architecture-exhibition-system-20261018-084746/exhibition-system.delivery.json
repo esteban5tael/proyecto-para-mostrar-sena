@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "c5040296-6ab0-4c33-86ea-6c3db9ca0201",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/mnt/jebcdev/doc/tut/_sena/_programacion-software/exposicion/exhibition-system/.archify/architecture-exhibition-system-20261018-084746/candidate.json",
+  "output": "/mnt/jebcdev/doc/tut/_sena/_programacion-software/exposicion/exhibition-system/.archify/architecture-exhibition-system-20261018-084746/exhibition-system.html",
+  "specification": {
+    "sha256": "5e1e35eb838ed7b7ebddb0f4a0219fcb88c55caac55b7180a42e06d3c9d8f727",
+    "bytes": 7783
+  },
+  "artifact": {
+    "sha256": "c20401c837bed42c0959f1e560de803cd35a2029a2e9b08812c989696e723cdd",
+    "bytes": 840680
+  }
+}

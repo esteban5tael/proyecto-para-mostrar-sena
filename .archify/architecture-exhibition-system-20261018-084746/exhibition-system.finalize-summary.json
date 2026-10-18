@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/mnt/jebcdev/doc/tut/_sena/_programacion-software/exposicion/exhibition-system/.archify/architecture-exhibition-system-20261018-084746/candidate.json",
+    "sha256": "5e1e35eb838ed7b7ebddb0f4a0219fcb88c55caac55b7180a42e06d3c9d8f727",
+    "bytes": 7783
+  },
+  "artifact": {
+    "path": "/mnt/jebcdev/doc/tut/_sena/_programacion-software/exposicion/exhibition-system/.archify/architecture-exhibition-system-20261018-084746/exhibition-system.html",
+    "sha256": "c20401c837bed42c0959f1e560de803cd35a2029a2e9b08812c989696e723cdd",
+    "bytes": 840680
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/mnt/jebcdev/doc/tut/_sena/_programacion-software/exposicion/exhibition-system/.archify/architecture-exhibition-system-20261018-084746/exhibition-system.finalize.json",
+    "summaryReceipt": "/mnt/jebcdev/doc/tut/_sena/_programacion-software/exposicion/exhibition-system/.archify/architecture-exhibition-system-20261018-084746/exhibition-system.finalize-summary.json",
+    "browserCheckReceipt": "/mnt/jebcdev/doc/tut/_sena/_programacion-software/exposicion/exhibition-system/.archify/architecture-exhibition-system-20261018-084746/exhibition-system.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-18T03:22:41.729Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 4313,
+  "visualReviewRecommendation": {
+    "action": "inspect-route-readability",
+    "signals": {
+      "routesOverSuggestedBends": 1
+    },
+    "reason": "Automated gates passed, but crossings or detours still need perceptual review before claiming visual quality.",
+    "affectedRoutes": {
+      "crossings": [],
+      "detours": [
+        {
+          "relationship": {
+            "id": "api-categories",
+            "from": "api",
+            "to": "categories",
+            "label": "CRUD categorías",
+            "collectionIndex": 5,
+            "artifactIndex": 6
+          },
+          "bends": 3,
+          "stretch": 1
+        }
+      ],
+      "truncated": false
+    },
+    "hints": [
+      "api → categories needs 3 bends: move node api or categories so they share a row or column with matching centers, or sit diagonally with a clear corner."
+    ],
+    "repair": "Trace these relationships at the desktop viewport. For Architecture, use references/architecture-layout-repair.md: reflow a blocked main path or tangled connected scene, and repair an isolated defect locally only when the surrounding composition is accepted. Preserve all semantic content and user-fixed geometry. Rerun finalize once after the edit."
+  }
+}
